@@ -68,7 +68,7 @@ jobs:
         with:
           components: rustfmt
       - name: Rustfmt Check
-        uses: Syndelis/rustfmt-action@v1
+        uses: Syndelis/rustfmt-action@v1.2.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
               
