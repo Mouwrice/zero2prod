@@ -1,6 +1,9 @@
 # https://github.com/EmbarkStudios/cargo-deny-action#recommended-pipeline-if-using-advisories-to-avoid-sudden-breakages
 name: Security Audit
-on: [push, pull_request]
+on:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
 jobs:
   cargo-deny:
     runs-on: ubuntu-latest
