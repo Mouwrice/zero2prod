@@ -41,14 +41,17 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
-      - uses: r7kamura/rust-problem-matchers@v1
-      - name: Linting
-        run: cargo clippy -- -D warnings
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
+    - uses: Swatinem/rust-cache@v2
+    - uses: giraffate/clippy-action@v1
+      with:
+        clippy_flags: -- -D warnings
+        reporter: 'github-pr-check'
+        fail_on_error: true
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
   coverage:
     name: Code coverage
