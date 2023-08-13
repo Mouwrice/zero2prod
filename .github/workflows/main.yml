@@ -1,6 +1,7 @@
 name: Rust
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
@@ -13,16 +14,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - uses: r7kamura/rust-problem-matchers@v1
-      - name: Run tests
-        run: cargo test
 
   fmt:
     name: Rustfmt
@@ -54,7 +45,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
   coverage:
-    name: Code coverage
+    name: "Build, Test & Coverage"
     runs-on: ubuntu-latest
     container:
       image: xd009642/tarpaulin
@@ -63,5 +54,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Generate code coverage
-        run: |
-          cargo tarpaulin --verbose --workspace
+        run: cargo tarpaulin --workspace --out Lcov
+      # Upload code coverage to coveralls
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2
