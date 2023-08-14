@@ -12,6 +12,8 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  SQLX_VERSION: 0.7.1
+  SQLX_FEATURES: "rustls,postgres"
 
 jobs:
 
@@ -31,12 +33,41 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+          
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: clippy
     - uses: Swatinem/rust-cache@v2
+      with:
+        key: sqlx-${{ env.SQLX_VERSION }}
+    - name: Install sqlx-cli
+      uses: baptiste0928/cargo-install@v2
+      with:
+        crate: sqlx-cli
+        version: ${{ env.SQLX_VERSION }}
+        features: ${{ env.SQLX_FEATURES }}
+        args: --no-default-features
+
+    - name: Install postgresql-client
+      uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+      with: 
+        packages: postgresql-client
+    
+    - name: Migrate database
+      run: SKIP_DOCKER=true ./scripts/init_db.sh
+      
     - uses: giraffate/clippy-action@v1
       with:
         clippy_flags: -- -D warnings
@@ -47,12 +78,42 @@ jobs:
   coverage:
     name: "Build, Test & Coverage"
     runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin
-      options: --security-opt seccomp=unconfined
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+          
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install postgresql-client
+        uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+        with: 
+          packages: postgresql-client
+          
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: sqlx-${{ env.SQLX_VERSION }}
+          
+      - name: Install sqlx-cli
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: sqlx-cli
+          version: ${{ env.SQLX_VERSION }}
+          features: ${{ env.SQLX_FEATURES }}
+          args: --no-default-features
+          
+      - name: Migrate database
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
+      - run: cargo install cargo-tarpaulin
       - name: Generate code coverage
         run: cargo tarpaulin --workspace --out Lcov
       # Upload code coverage to coveralls
