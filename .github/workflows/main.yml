@@ -33,6 +33,17 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+          
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
@@ -42,14 +53,18 @@ jobs:
       with:
         key: sqlx-${{ env.SQLX_VERSION }}
     - name: Install sqlx-cli
-      run:
-         cargo install sqlx-cli
-           --version=${{ env.SQLX_VERSION }}
-           --features ${{ env.SQLX_FEATURES }}
-           --no-default-features
-           --locked
+      uses: baptiste0928/cargo-install@v2
+      with:
+        crate: sqlx-cli
+        version: ${{ env.SQLX_VERSION }}
+        features: ${{ env.SQLX_FEATURES }}
+        args: --no-default-features
+
     - name: Install postgresql-client
-      run: sudo apt-get update && sudo apt-get install postgresql-client -y
+      uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+      with: 
+        packages: postgresql-client
+    
     - name: Migrate database
       run: SKIP_DOCKER=true ./scripts/init_db.sh
       
@@ -65,29 +80,37 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:14
+        image: postgres:15
         env:
+          POSTGRES_HOST: postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+          
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      
       - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install postgresql-client -y
+        uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+        with: 
+          packages: postgresql-client
+          
       - uses: Swatinem/rust-cache@v2
         with:
           key: sqlx-${{ env.SQLX_VERSION }}
+          
       - name: Install sqlx-cli
-        run:
-          cargo install sqlx-cli
-          --version=${{ env.SQLX_VERSION }}
-          --features ${{ env.SQLX_FEATURES }}
-          --no-default-features
-          --locked
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: sqlx-cli
+          version: ${{ env.SQLX_VERSION }}
+          features: ${{ env.SQLX_FEATURES }}
+          args: --no-default-features
+          
       - name: Migrate database
         run: SKIP_DOCKER=true ./scripts/init_db.sh
       - run: cargo install cargo-tarpaulin
