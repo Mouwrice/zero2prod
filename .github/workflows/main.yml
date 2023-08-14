@@ -53,12 +53,13 @@ jobs:
       with:
         key: sqlx-${{ env.SQLX_VERSION }}
     - name: Install sqlx-cli
-      run:
-         cargo install sqlx-cli
-           --version=${{ env.SQLX_VERSION }}
-           --features ${{ env.SQLX_FEATURES }}
-           --no-default-features
-           --locked
+      uses: baptiste0928/cargo-install@v2
+      with:
+        crate: sqlx-cli
+        version: ${{ env.SQLX_VERSION }}
+        features: ${{ env.SQLX_FEATURES }}
+        args: --no-default-features
+
     - name: Install postgresql-client
       uses: awalsh128/cache-apt-pkgs-action@v1.3.0
       with: 
@@ -101,13 +102,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: sqlx-${{ env.SQLX_VERSION }}
+          
       - name: Install sqlx-cli
-        run:
-          cargo install sqlx-cli
-          --version=${{ env.SQLX_VERSION }}
-          --features ${{ env.SQLX_FEATURES }}
-          --no-default-features
-          --locked
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: sqlx-cli
+          version: ${{ env.SQLX_VERSION }}
+          features: ${{ env.SQLX_FEATURES }}
+          args: --no-default-features
+          
       - name: Migrate database
         run: SKIP_DOCKER=true ./scripts/init_db.sh
       - run: cargo install cargo-tarpaulin
