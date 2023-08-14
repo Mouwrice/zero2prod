@@ -28,6 +28,5 @@ pub async fn subscribe(form: web::Form<FormData>, db_pool: web::Data<PgPool>) ->
             println!("Failed to execute query: {}", e);
             HttpResponse::InternalServerError().finish()
         }
-    };
-    HttpResponse::Ok().finish()
+    }
 }
