@@ -61,7 +61,7 @@ jobs:
         args: --no-default-features
 
     - name: Install postgresql-client
-      uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+      uses: awalsh128/cache-apt-pkgs-action@v1.3.1
       with: 
         packages: postgresql-client
     
@@ -95,7 +95,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       
       - name: Install postgresql-client
-        uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+        uses: awalsh128/cache-apt-pkgs-action@v1.3.1
         with: 
           packages: postgresql-client
           
